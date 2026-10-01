@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Salary Prediction</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #fff9fc, #f7f1ff, #fff5f6);
+            color: #2e1534;
+        }
+
+        .header {
+            background: #ffffff;
+            padding: 30px 8%;
+            border-bottom: 5px solid #7b2cbf;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+        }
+
+        .header h1 {
+            font-size: 44px;
+            color: #5a189a;
+            margin-bottom: 10px;
+            font-weight: 800;
+        }
+
+        .header p {
+            font-size: 19px;
+            color: #6d5b75;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 88%;
+            margin: 35px auto 50px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 28px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: #ffffff;
+            padding: 32px;
+            border-radius: 22px;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+        }
+
+        .card h2 {
+            font-size: 34px;
+            color: #5a189a;
+            margin-bottom: 22px;
+            font-weight: 800;
+        }
+
+        label {
+            display: block;
+            margin-top: 18px;
+            margin-bottom: 9px;
+            font-size: 20px;
+            font-weight: 700;
+            color: #47304f;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 16px 18px;
+            border-radius: 12px;
+            border: 1.5px solid #dfd1ea;
+            font-size: 19px;
+            background: #fcfbff;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #7b2cbf;
+            box-shadow: 0 0 0 3px rgba(123, 44, 191, 0.12);
+        }
+
+        button {
+            width: 100%;
+            margin-top: 28px;
+            padding: 18px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(90deg, #7b2cbf, #d90429);
+            color: white;
+            font-size: 22px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            opacity: 0.95;
+        }
+
+        .salary-box {
+            text-align: center;
+            background: linear-gradient(135deg, #f8f1ff, #fff4f5);
+            padding: 34px;
+            border-radius: 18px;
+            margin-bottom: 28px;
+            border-left: 7px solid #7b2cbf;
+        }
+
+        .salary-box p {
+            font-size: 22px;
+            color: #5a189a;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .salary {
+            font-size: 58px;
+            font-weight: 900;
+            color: #c1121f;
+            letter-spacing: 1px;
+        }
+
+        .summary-title {
+            font-size: 32px;
+            color: #5a189a;
+            margin-bottom: 18px;
+            font-weight: 800;
+        }
+
+        .summary {
+            background: #fff8f9;
+            padding: 22px;
+            border-radius: 16px;
+            border-left: 6px solid #d90429;
+        }
+
+        .summary p {
+            font-size: 20px;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+            color: #3d2b45;
+        }
+
+        .summary p:last-child {
+            border-bottom: none;
+        }
+
+        .graph-card {
+            background: #ffffff;
+            padding: 32px;
+            border-radius: 22px;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+
+        .graph-card h2 {
+            font-size: 34px;
+            color: #5a189a;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        .graph-note {
+            font-size: 18px;
+            color: #6d5b75;
+            margin-bottom: 18px;
+            line-height: 1.6;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        .metric {
+            background: #ffffff;
+            padding: 28px;
+            border-radius: 18px;
+            text-align: center;
+            box-shadow: 0 6px 22px rgba(0,0,0,0.07);
+        }
+
+        .metric h3 {
+            font-size: 28px;
+            color: #7b2cbf;
+            margin-bottom: 14px;
+        }
+
+        .metric strong {
+            font-size: 34px;
+            color: #d90429;
+            font-weight: 900;
+        }
+
+        canvas {
+            max-height: 430px;
+        }
+
+        @media (max-width: 1000px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 36px;
+            }
+
+            .salary {
+                font-size: 46px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Employee Salary Prediction</h1>
+        <p>
+            Machine Learning based salary estimation using employee demographic,
+            education and professional experience. This dashboard predicts salary
+            and visualizes how salary varies with experience.
+        </p>
+    </div>
+
+    <div class="container">
+
+        <div class="dashboard">
+
+            <!-- INPUT CARD -->
+            <div class="card">
+                <h2>Employee Details</h2>
+
+                <form action="/predict" method="POST">
+                    <label>Age</label>
+                    <input
+                        type="number"
+                        name="age"
+                        min="18"
+                        required
+                        value="{{ age if age is defined else '' }}"
+                    >
+
+                    <label>Gender</label>
+                    <select name="gender" required>
+                        {% for item in genders %}
+                        <option value="{{ item }}" {% if gender is defined and gender == item %}selected{% endif %}>
+                            {{ item }}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <label>Education Level</label>
+                    <select name="education" required>
+                        {% for item in education_levels %}
+                        <option value="{{ item }}" {% if education is defined and education == item %}selected{% endif %}>
+                            {{ item }}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <label>Job Title</label>
+                    <select name="job_title" required>
+                        {% for item in job_titles %}
+                        <option value="{{ item }}" {% if job_title is defined and job_title == item %}selected{% endif %}>
+                            {{ item }}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <label>Years of Experience</label>
+                    <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        name="experience"
+                        required
+                        value="{{ experience if experience is defined else '' }}"
+                    >
+
+                    <button type="submit">Predict Salary</button>
+                </form>
+            </div>
+
+            <!-- RESULT CARD -->
+            <div class="card">
+                <h2>Salary Prediction</h2>
+
+                <div class="salary-box">
+                    <p>Predicted Salary</p>
+                    {% if prediction is not none %}
+                    <div class="salary">{{ "{:,.2f}".format(prediction) }}</div>
+                    {% else %}
+                    <div class="salary">--</div>
+                    {% endif %}
+                </div>
+
+                <div class="summary-title">Input Summary</div>
+
+                <div class="summary">
+                    {% if prediction is not none %}
+                    <p><strong>Age:</strong> {{ age }}</p>
+                    <p><strong>Gender:</strong> {{ gender }}</p>
+                    <p><strong>Education:</strong> {{ education }}</p>
+                    <p><strong>Job Title:</strong> {{ job_title }}</p>
+                    <p><strong>Experience:</strong> {{ experience }} years</p>
+                    {% else %}
+                    <p>Enter employee details and click on Predict Salary.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+
+        <!-- GRAPH -->
+        <div class="graph-card">
+            <h2>Salary vs Years of Experience</h2>
+            <div class="graph-note">
+                The purple points represent the dataset values, and the red point shows
+                the salary predicted for the experience you entered.
+            </div>
+            <canvas id="salaryChart"></canvas>
+        </div>
+
+        <!-- METRICS -->
+        <div class="metrics">
+            <div class="metric">
+                <h3>R² Score</h3>
+                <strong>0.872</strong>
+            </div>
+
+            <div class="metric">
+                <h3>MAE</h3>
+                <strong>10,177</strong>
+            </div>
+
+            <div class="metric">
+                <h3>RMSE</h3>
+                <strong>17,534</strong>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const experienceData = {{ experience_data | tojson }};
+        const salaryData = {{ salary_data | tojson }};
+        const predictedSalary = {{ prediction | tojson }};
+        const predictedExperience = {{ predicted_experience | tojson }};
+
+        const scatterPoints = experienceData.map((x, i) => ({
+            x: x,
+            y: salaryData[i]
+        }));
+
+        const predictedPoint = (
+            predictedSalary !== null && predictedExperience !== null
+        ) ? [{
+            x: predictedExperience,
+            y: predictedSalary
+        }] : [];
+
+        const ctx = document.getElementById('salaryChart').getContext('2d');
+
+        new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    {
+                        label: 'Dataset Salaries',
+                        data: scatterPoints,
+                        backgroundColor: 'rgba(123, 44, 191, 0.75)',
+                        borderColor: 'rgba(123, 44, 191, 1)',
+                        pointRadius: 5
+                    },
+                    {
+                        label: 'Predicted Salary',
+                        data: predictedPoint,
+                        backgroundColor: 'rgba(217, 4, 41, 1)',
+                        borderColor: 'rgba(217, 4, 41, 1)',
+                        pointRadius: 9,
+                        pointHoverRadius: 11
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#4b2d57',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Years of Experience',
+                            color: '#4b2d57',
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            }
+                        },
+                        ticks: {
+                            color: '#5f4a68',
+                            font: {
+                                size: 14
+                            }
+                        },
+                        grid: {
+                            color: '#eee4f5'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Salary',
+                            color: '#4b2d57',
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            }
+                        },
+                        ticks: {
+                            color: '#5f4a68',
+                            font: {
+                                size: 14
+                            }
+                        },
+                        grid: {
+                            color: '#f3e7ee'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>
